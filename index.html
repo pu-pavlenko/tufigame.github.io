@@ -543,7 +543,7 @@
 // ============================================================
 // CONFIG — paste your Apps Script Web App URL here
 // ============================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzVN3CB9w_qFl2wq7Xqv3ONpIEATFv6rtgQaqOoNpTr0Po8FLs4meqX1cnGQMn-bkFh/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzVN3CB9w_qFl2wq7Xqv3ONpIEATFv6rtgQaqOoNpTr0Po8FLs4meqX1cnGQMn-bkFh/exec;
 
 // ============================================================
 // State
@@ -675,10 +675,21 @@ async function handleRegister() {
   try {
     const res = await apiPost({ action: "register", name, extraCount: extra });
     if (res.success) {
-      const isWaitlist = res.status === "waitlist";
+      let alertClass = "success";
+      let msg = "You're registered!";
+      if (res.status === "waitlist") {
+        alertClass = "info";
+        msg = `You're on the waitlist (position ${res.waitlistPosition}).`;
+      } else if (res.status === "split") {
+        alertClass = "info";
+        const playerPart = res.extrasAsPlayer > 0
+          ? `You and ${res.extrasAsPlayer} guest(s) are registered.`
+          : "You are registered.";
+        msg = `${playerPart} ${res.extrasAsWaitlist} guest(s) couldn't fit and are on the waitlist (position ${res.waitlistPosition}).`;
+      }
       resultEl.innerHTML = `
-        <div class="alert ${isWaitlist ? 'info' : 'success'} fadein">
-          ${isWaitlist ? `You're on the waitlist (position ${res.waitlistPosition}).` : `You're registered!`}
+        <div class="alert ${alertClass} fadein">
+          ${msg}
           <br />Save your code:
           <span class="code-display">${res.code}</span>
           You'll need it to modify or cancel.
